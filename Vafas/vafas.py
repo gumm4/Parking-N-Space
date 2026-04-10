@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS clientes (
     nome TEXT,
     cpf PRIMARY KEY INTEGER,
     placa VARCHAR,
+    tempo INTEGER,
+    valor REAL,
     pagamento TEXT
 )
 """)
@@ -53,7 +55,7 @@ listar = 0
 atualizar = 0
 excluir = 0
 registros = []
-valor = 0
+#valor = 0
 
 
 
@@ -68,8 +70,10 @@ def cadastro():
     data            = entrada_data.get.strip()
     hora_entrada    = entrada_hora_inicio.get().strip()
     hora_saida      = entrada_hora_saida.get().strip()
-    tempo           = entrada_tempo.get().strip()
+    tempo           = int(entrada_tempo.get().strip())
+    valor           = tempo * 3
     pagamento       = entrada_pag.get().strip()
+    
     
     if nome == "" or cpf == "" or placa == "" or data == "" == hora_entrada == "" or hora_saida == "" or tempo == "" or pagamento == "":
         
@@ -82,9 +86,9 @@ def cadastro():
     
     cursor.execute("""
                    
-    INSERT INTO clientes (nome,cpf,placa,tempo,pagamento)
+    INSERT INTO clientes (nome,cpf,placa,tempo,valor,pagamento)
     VALUES (?,?,?,?,?)
-    """,(nome,cpf,placa,float(tempo),pagamento))
+    """,(nome,cpf,placa,tempo,valor,pagamento))
     database.commit()
     messagebox.showinfo("Sucesso","Cadastro do Cliente feito com sucesso!")
     
@@ -97,6 +101,17 @@ def listar():
     for r in registros:
         
         listagem.insert(tk.END, f"{r}\n")
+        
+        
+    cursor.execute("SELECT tempo * 3 FROM clientes ")
+    valor_total = cursor.fetchall()
+    
+    cursor.execute("""
+                
+        INSERT INTO clientes(valor)
+        VALUES(?)  
+    """)
+
         
         
 def atualizar():
@@ -127,6 +142,7 @@ def excluir():
     cursor.execute("DELETE FROM clientes WHERE cpf = ?", (cpf_cadastrado))
     database.commit()
     messagebox.showinfo("Sucesso","O cliente foi excluído com sucesso!")
+    
     
     
 #-------------------------FUNÇÃO DE RELATÓRIOS--------------------#
