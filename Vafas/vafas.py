@@ -3,105 +3,139 @@ import sqlite3
 from tkinter import messagebox,ttk,filedialog
 import matplotlib.pyplot as plt
 from fpdf import FDPF
+from datetime import datetime,date
 
-#----------------------------------------BANCO DE DADOS-------------------------------------------------------#
+#----------------------------------------------------------------------BANCO DE DADOS--------------------------------------------------------------------------#
 
 database = sqlite3.connect("vagas.db")
 cursor = database.cursor()
 
-#----Tabela de CLientes----#
+#-------------------------------------------------------------------Tabela de CLientes-------------------------------------------------------------------------#
 
 cursor.execute("""
                
 CREATE TABLE IF NOT EXISTS clientes (
     
-
-    nome TEXT,
     cpf PRIMARY KEY INTEGER,
+    nome TEXT,
     placa VARCHAR,
-    tempo INTEGER,
-    valor REAL,
-    pagamento TEXT
+    quantidade INTEGER AUTOINCREMENT
+
 )
-""")
+"""
+)
 
 database.commit()
-#----------------------------#
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-#------Tabela das Vagas------#
+#-------------------------------------------------------------------Tabela das Vagas---------------------------------------------------------------------------#
 
 
 cursor.execute("""
                
 CREATE TABLE IF NOT EXISTS vaga (
     
-    id PRIMARY KEY INTEGER AUTOINCREMENT
+    id INTEGER AUTOINCREMENT
     data TEXT,
     hora_entrada TEXT,
     hora_saida TEXT,
-    placa VARHCAR
+    placa PRIMARY KEY VARHCAR,
+    tempo INTEGER,
+    valor REAL,
+    pagamento TEXT
 )
-""")
+"""
+)
 
 
 database.commit()
 
-#---------------------------#
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-#---------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
 cadastro = 0
 listar = 0
 atualizar = 0
 excluir = 0
 registros = []
-#valor = 0
 
 
 
-#-------------------------------------------------FUNÇÕES-------------------------------------------------------------#
+#------------------------------------------------------------------FUNÇÕES-------------------------------------------------------------------------------------#
+
+#----------------------------------------------------------------Cadastrar-------------------------------------------------------------------------------------#
 
 def cadastro():
-    
     
     nome            = entrada_nome.get.strip()
     cpf             = entrada_cpf.get.strip()
     placa           = entrada_placa.get.strip()
-    data            = entrada_data.get.strip()
-    hora_entrada    = entrada_hora_inicio.get().strip()
-    hora_saida      = entrada_hora_saida.get().strip()
-    tempo           = int(entrada_tempo.get().strip())
-    valor           = tempo * 3
-    pagamento       = entrada_pag.get().strip()
+    quantidade      = int(quantidade) + 1
     
+    """
+    if cpf_cadastrado == cpf:
+        
+        messagebox.showinfo("Sucesso","Bem vindo de volta")  
+    """
     
-    if nome == "" or cpf == "" or placa == "" or data == "" == hora_entrada == "" or hora_saida == "" or tempo == "" or pagamento == "":
+    if nome == "" or cpf == "" or placa == "":
         
         messagebox.showerror("Erro", "Todos os campos devem ser preenchidos")
         return
-    try:
-        float(tempo)
-    except ValueError:
-        messagebox.showerror("Erro","O valor colocado deve ser em número.")
+    else:
+        
+        cursor.execute("""
+                   
+        INSERT INTO clientes (cpf,nome,placa,quantidade)
+        VALUES (?,?,?,?)
+        
+        """,(cpf,nome,placa,quantidade)
+        )
+        
+        database.commit()
+        messagebox.showinfo("Sucesso","Cadastro do Cliente feito com sucesso!")
+    
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    
+    
+def cadastrar_vaga():
+    
+    data            = date.today()
+    hora_e          = datetime.now()
+    hora_entrada    = hora_e.strftime("%H:%M:%S")
+    hora_saida      = entrada_hora_saida.get().strip()
+    tempo           = int(entrada_hora_inicio.get().strip()) - int(entrada_hora_saida.get().strip())
+    valor           = tempo * 3
+    pagamento       = entrada_pag.get().strip()
+    
+    if data == "" or hora_entrada == "" or hora_saida == "":
+        
+        messagebox.showerror("Erro","Todos os campos devem ser preenchidos")
+        return
     
     cursor.execute("""
-                   
-    INSERT INTO clientes (nome,cpf,placa,tempo,valor,pagamento)
-    VALUES (?,?,?,?,?)
-    """,(nome,cpf,placa,tempo,valor,pagamento))
-    database.commit()
-    messagebox.showinfo("Sucesso","Cadastro do Cliente feito com sucesso!")
+        
+        INSERT INTO vagas (data,hora_entrada,hora_saida,tempo,valor)           
+        VALUES(?,?,?,?,?)
+        """(data,hora_entrada,hora_saida,tempo,valor)
+    )
     
+    database.commit()
+    messagebox.showinfo("Sucesso","Vaga reservada com sucesso!")
+
+
+    #--Listar--#
     
 def listar():
     
     cursor.execute("SELECT * FROM clientes")
     registros = cursor.fetchall()
     listagem.delete(1.0, tk.END)
+    
     for r in registros:
         
         listagem.insert(tk.END, f"{r}\n")
-        
         
     cursor.execute("SELECT tempo * 3 FROM clientes ")
     valor_total = cursor.fetchall()
@@ -112,7 +146,9 @@ def listar():
         VALUES(?)  
     """)
 
-        
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+  
+#------------------------------------------------------------------Atualizar-----------------------------------------------------------------------------------#
         
 def atualizar():
     
@@ -130,6 +166,10 @@ def atualizar():
     cursor.execute("UPDATE clientes SET pagamento = ? WHERE cpf = ? ", (novo_pagamento, cpf_cadastrado))
     database.commit()
     messagebox.showinfo("Sucesso","Pagamento atualizado com Sucesso!")
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#--Excluir--#
     
 def excluir():
     
@@ -142,10 +182,69 @@ def excluir():
     cursor.execute("DELETE FROM clientes WHERE cpf = ?", (cpf_cadastrado))
     database.commit()
     messagebox.showinfo("Sucesso","O cliente foi excluído com sucesso!")
+  
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+  
+"""def check_out():
     
+    id_vaga = entrada_id.get().strip()
     
+    if id_vaga == '' or not id_vaga.isdigit():
+        
+        messagebox.showerror("Erro","O campo de ID deve ser preenchido obrigatoriamente")
+"""
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------Recebimento---------------------------------------------------------------------------------#
+
+def recebimento():
     
-#-------------------------FUNÇÃO DE RELATÓRIOS--------------------#
+    placa_registrada = entrada_placa.get().strip()
+    hora_saida = entrada_hora_saida.get().strip()
+    
+    valor = int(hora_entrada) - int(hora_saida)
+    
+    cursor.execute("SELECT data, hora_saida FROM vagas")
+    
+    registro = cursor.fetchone()
+    lista_receber.delete(1.0, tk.END)
+    for r in registros:
+        
+        lista_receber.insert(tk.END, f"{r}\n")
+        
+    pagamento = entrada_pag.get().strip()
+    
+    cursor.execute("UPDATE vaga SET pagamento = ? WHERE id = ?"(pagamento,id_vaga))
+        
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#--------------------------------------------------------------FUNÇÃO DE RELATÓRIOS----------------------------------------------------------------------------#
+
+
+
+def top_5():
+       
+    cursor.execute(
+    """
+    
+    SELECT placa, COUNT(*) as vezes_usadas
+    FROM  vagas
+    GROUP BY placa
+    ORDER BY vezes_usadas
+    LIMIT 5
+                  
+    """
+)
+
+def relatorio_cliente():
+    
+    cursor.execute("SELECT * FROM clientes")
+    registros = cursor.fetchall()
+    cliente_relatorio.delete("1.0", tk.END)
+    cliente_relatorio.insert(tk.END, f"{r}\n")
 
 def pagamentos_pendentes():
     
