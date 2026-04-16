@@ -1,262 +1,431 @@
 import tkinter as tk
 import sqlite3
-from tkinter import messagebox,ttk,filedialog
-import matplotlib.pyplot as plt
-from fpdf import FDPF
-from datetime import datetime,date
+from tkinter import messagebox, ttk
+from datetime import datetime
 
-#----------------------------------------------------------------------BANCO DE DADOS--------------------------------------------------------------------------#
 
-database = sqlite3.connect("vagas.db")
-cursor = database.cursor()
+# ============================================================
+# 1. CONEXÃO COM O BANCO
+# ============================================================
+conexao = sqlite3.connect("estacionamento.db")
+cursor = conexao.cursor()
 
-#-------------------------------------------------------------------Tabela de CLientes-------------------------------------------------------------------------#
-
+# Tabela de clientes
 cursor.execute("""
-               
 CREATE TABLE IF NOT EXISTS clientes (
-    
-    cpf PRIMARY KEY INTEGER,
-    nome TEXT,
-    placa VARCHAR,
-    quantidade INTEGER AUTOINCREMENT
-
+    cpf TEXT PRIMARY KEY,
+    nome TEXT NOT NULL,
+    placa TEXT NOT NULL
 )
-"""
-)
+""")
 
-database.commit()
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-
-#-------------------------------------------------------------------Tabela das Vagas---------------------------------------------------------------------------#
-
-
+# Tabela de movimentação
 cursor.execute("""
-               
-CREATE TABLE IF NOT EXISTS vaga (
-    
-    id INTEGER AUTOINCREMENT
-    data TEXT,
-    hora_entrada TEXT,
+CREATE TABLE IF NOT EXISTS movimentacao (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    data TEXT NOT NULL,
+    hora_entrada TEXT NOT NULL,
     hora_saida TEXT,
-    placa PRIMARY KEY VARHCAR,
-    tempo INTEGER,
+    placa TEXT NOT NULL,
+    tempo REAL,
     valor REAL,
-    pagamento TEXT
+    pagamento TEXT DEFAULT 'A Pagar'
 )
-"""
-)
+""")
 
+conexao.commit()
 
-database.commit()
+VALOR_HORA = 10.0
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+# ============================================================
+# 2. FUNÇÕES CLIENTES (CRUD)
+# ============================================================
+def cadastrar_cliente():
+    nome = entrada_nome.get().strip()
+    cpf = entrada_cpf.get().strip()
+    placa = entrada_placa.get().strip().upper()
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-
-cadastro = 0
-listar = 0
-atualizar = 0
-excluir = 0
-registros = []
-
-
-
-#------------------------------------------------------------------FUNÇÕES-------------------------------------------------------------------------------------#
-
-#----------------------------------------------------------------Cadastrar-------------------------------------------------------------------------------------#
-
-def cadastro():
-    
-    nome            = entrada_nome.get.strip()
-    cpf             = entrada_cpf.get.strip()
-    placa           = entrada_placa.get.strip()
-    quantidade      = int(quantidade) + 1
-    
-    """
-    if cpf_cadastrado == cpf:
-        
-        messagebox.showinfo("Sucesso","Bem vindo de volta")  
-    """
-    
     if nome == "" or cpf == "" or placa == "":
-        
-        messagebox.showerror("Erro", "Todos os campos devem ser preenchidos")
+        messagebox.showerror("Erro", "Todos os campos devem ser preenchidos.")
         return
-    else:
-        
+
+    if not cpf.isdigit():
+        messagebox.showerror("Erro", "O CPF deve conter apenas números.")
+        return
+
+    try:
         cursor.execute("""
-                   
-        INSERT INTO clientes (cpf,nome,placa,quantidade)
-        VALUES (?,?,?,?)
-        
-        """,(cpf,nome,placa,quantidade)
-        )
-        
-        database.commit()
-        messagebox.showinfo("Sucesso","Cadastro do Cliente feito com sucesso!")
-    
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-    
-    
-def cadastrar_vaga():
-    
-    data            = date.today()
-    hora_e          = datetime.now()
-    hora_entrada    = hora_e.strftime("%H:%M:%S")
-    hora_saida      = entrada_hora_saida.get().strip()
-    tempo           = int(entrada_hora_inicio.get().strip()) - int(entrada_hora_saida.get().strip())
-    valor           = tempo * 3
-    pagamento       = entrada_pag.get().strip()
-    
-    if data == "" or hora_entrada == "" or hora_saida == "":
-        
-        messagebox.showerror("Erro","Todos os campos devem ser preenchidos")
-        return
-    
-    cursor.execute("""
-        
-        INSERT INTO vagas (data,hora_entrada,hora_saida,tempo,valor)           
-        VALUES(?,?,?,?,?)
-        """(data,hora_entrada,hora_saida,tempo,valor)
-    )
-    
-    database.commit()
-    messagebox.showinfo("Sucesso","Vaga reservada com sucesso!")
+        INSERT INTO clientes (cpf, nome, placa)
+        VALUES (?, ?, ?)
+        """, (cpf, nome, placa))
+        conexao.commit()
+        messagebox.showinfo("Sucesso", "Cliente cadastrado com sucesso!")
+
+        entrada_nome.delete(0, tk.END)
+        entrada_cpf.delete(0, tk.END)
+        entrada_placa.delete(0, tk.END)
+
+    except sqlite3.IntegrityError:
+        messagebox.showerror("Erro", "Este CPF já está cadastrado.")
 
 
-    #--Listar--#
-    
-def listar():
-    
-    cursor.execute("SELECT * FROM clientes")
+def listar_clientes():
+    lista_clientes.delete("1.0", tk.END)
+
+    cursor.execute("SELECT cpf, nome, placa FROM clientes ORDER BY nome")
     registros = cursor.fetchall()
-    listagem.delete(1.0, tk.END)
-    
-    for r in registros:
-        
-        listagem.insert(tk.END, f"{r}\n")
-        
-    cursor.execute("SELECT tempo * 3 FROM clientes ")
-    valor_total = cursor.fetchall()
-    
+
+    if not registros:
+        lista_clientes.insert(tk.END, "Nenhum cliente cadastrado.\n")
+        return
+
+    for cpf, nome, placa in registros:
+        lista_clientes.insert(tk.END, f"CPF: {cpf} | Nome: {nome} | Placa: {placa}\n")
+
+
+def atualizar_cliente():
+    nome = entrada_nome.get().strip()
+    cpf = entrada_cpf.get().strip()
+    placa = entrada_placa.get().strip().upper()
+
+    if nome == "" or cpf == "" or placa == "":
+        messagebox.showerror("Erro", "Preencha nome, CPF e placa.")
+        return
+
     cursor.execute("""
-                
-        INSERT INTO clientes(valor)
-        VALUES(?)  
-    """)
+    UPDATE clientes
+    SET nome = ?, placa = ?
+    WHERE cpf = ?
+    """, (nome, placa, cpf))
+    conexao.commit()
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-  
-#------------------------------------------------------------------Atualizar-----------------------------------------------------------------------------------#
-        
-def atualizar():
-    
-    cpf_cadastrado = entrada_cpf.get().strip()
-    novo_pagamento = entrada_pag.get().strip()
-    
-    if cpf_cadastrado  == "" or not cpf_cadastrado.isdigit():
-        
-        messagebox.showerror("Erro","O CPF deve conter somente números.")
+    if cursor.rowcount == 0:
+        messagebox.showerror("Erro", "Cliente não encontrado.")
+    else:
+        messagebox.showinfo("Sucesso", "Cliente atualizado com sucesso!")
+
+
+def excluir_cliente():
+    cpf = entrada_cpf.get().strip()
+
+    if cpf == "":
+        messagebox.showerror("Erro", "Informe o CPF.")
         return
-    if novo_pagamento not in ["Recebido", "A Pagar"]:
-        
-        messagebox.showerror("Erro","O Pagamento deve ser 'Recebido' ou 'A Pagar'.")
-        
-    cursor.execute("UPDATE clientes SET pagamento = ? WHERE cpf = ? ", (novo_pagamento, cpf_cadastrado))
-    database.commit()
-    messagebox.showinfo("Sucesso","Pagamento atualizado com Sucesso!")
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    cursor.execute("DELETE FROM clientes WHERE cpf = ?", (cpf,))
+    conexao.commit()
 
-#--Excluir--#
-    
-def excluir():
-    
-    cpf_cadastrado = entrada_cpf.get().strip()
-    
-    if cpf_cadastrado == "" or not cpf_cadastrado.isdigit():
-        messagebox.showerror("Erro","O CPF deve conter apenas números.")
+    if cursor.rowcount == 0:
+        messagebox.showerror("Erro", "Cliente não encontrado.")
+    else:
+        messagebox.showinfo("Sucesso", "Cliente excluído com sucesso!")
+
+# ============================================================
+# 3. MOVIMENTAÇÃO
+# ============================================================
+def registrar_entrada():
+    placa = entrada_mov_placa.get().strip().upper()
+
+    if placa == "":
+        messagebox.showerror("Erro", "Informe a placa.")
         return
-    
-    cursor.execute("DELETE FROM clientes WHERE cpf = ?", (cpf_cadastrado))
-    database.commit()
-    messagebox.showinfo("Sucesso","O cliente foi excluído com sucesso!")
-  
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-  
-"""def check_out():
-    
-    id_vaga = entrada_id.get().strip()
-    
-    if id_vaga == '' or not id_vaga.isdigit():
-        
-        messagebox.showerror("Erro","O campo de ID deve ser preenchido obrigatoriamente")
-"""
+    data = datetime.now().strftime("%d/%m/%Y")
+    hora_entrada = datetime.now().strftime("%H:%M:%S")
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    cursor.execute("""
+    INSERT INTO movimentacao (data, hora_entrada, placa, pagamento)
+    VALUES (?, ?, ?, ?)
+    """, (data, hora_entrada, placa, "A Pagar"))
+    conexao.commit()
 
-#------------------------------------------------------------------Recebimento---------------------------------------------------------------------------------#
+    messagebox.showinfo("Sucesso", f"Entrada registrada às {hora_entrada}.")
+    entrada_mov_placa.delete(0, tk.END)
 
-def recebimento():
-    
-    placa_registrada = entrada_placa.get().strip()
-    hora_saida = entrada_hora_saida.get().strip()
-    
-    valor = int(hora_entrada) - int(hora_saida)
-    
-    cursor.execute("SELECT data, hora_saida FROM vagas")
-    
+
+def registrar_saida():
+    placa = entrada_mov_placa.get().strip().upper()
+
+    if placa == "":
+        messagebox.showerror("Erro", "Informe a placa.")
+        return
+
+    cursor.execute("""
+    SELECT id, data, hora_entrada
+    FROM movimentacao
+    WHERE placa = ? AND hora_saida IS NULL
+    ORDER BY id DESC
+    LIMIT 1
+    """, (placa,))
     registro = cursor.fetchone()
-    lista_receber.delete(1.0, tk.END)
+
+    if not registro:
+        messagebox.showerror("Erro", "Nenhuma entrada em aberto encontrada para esta placa.")
+        return
+
+    id_mov, data, hora_entrada = registro
+    hora_saida = datetime.now().strftime("%H:%M:%S")
+
+    dt_entrada = datetime.strptime(data + " " + hora_entrada, "%d/%m/%Y %H:%M:%S")
+    dt_saida = datetime.strptime(data + " " + hora_saida, "%d/%m/%Y %H:%M:%S")
+
+    tempo = (dt_saida - dt_entrada).total_seconds() / 3600
+
+    if tempo <= 0:
+        tempo = 1
+    else:
+        tempo = round(tempo, 2)
+
+    valor = round(tempo * VALOR_HORA, 2)
+
+    cursor.execute("""
+    UPDATE movimentacao
+    SET hora_saida = ?, tempo = ?, valor = ?
+    WHERE id = ?
+    """, (hora_saida, tempo, valor, id_mov))
+    conexao.commit()
+
+    messagebox.showinfo(
+        "Sucesso",
+        f"Saída registrada!\n\nHora Saída: {hora_saida}\nTempo: {tempo} hora(s)\nValor: R$ {valor:.2f}"
+    )
+    entrada_mov_placa.delete(0, tk.END)
+
+
+def listar_movimentacao():
+    lista_mov.delete("1.0", tk.END)
+
+    cursor.execute("""
+    SELECT id, data, hora_entrada, hora_saida, placa, tempo, valor, pagamento
+    FROM movimentacao
+    ORDER BY id DESC
+    """)
+    registros = cursor.fetchall()
+
+    if not registros:
+        lista_mov.insert(tk.END, "Nenhuma movimentação cadastrada.\n")
+        return
+
     for r in registros:
-        
-        lista_receber.insert(tk.END, f"{r}\n")
-        
-    pagamento = entrada_pag.get().strip()
-    
-    cursor.execute("UPDATE vaga SET pagamento = ? WHERE id = ?"(pagamento,id_vaga))
-        
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+        lista_mov.insert(tk.END, f"{r}\n")
 
-#--------------------------------------------------------------FUNÇÃO DE RELATÓRIOS----------------------------------------------------------------------------#
+# ============================================================
+# 4. RECEBIMENTOS
+# ============================================================
+def listar_recebimentos_aberto():
+    lista_recebimentos.delete("1.0", tk.END)
+
+    cursor.execute("""
+    SELECT id, placa, data, valor, pagamento
+    FROM movimentacao
+    WHERE valor IS NOT NULL AND pagamento = 'A Pagar'
+    ORDER BY id DESC
+    """)
+    registros = cursor.fetchall()
+
+    if not registros:
+        lista_recebimentos.insert(tk.END, "Nenhum recebimento em aberto.\n")
+        return
+
+    for r in registros:
+        lista_recebimentos.insert(tk.END, f"{r}\n")
 
 
+def dar_baixa_pagamento():
+    id_mov = entrada_recebimento_id.get().strip()
 
-def top_5():
-       
-    cursor.execute(
-    """
-    
-    SELECT placa, COUNT(*) as vezes_usadas
-    FROM  vagas
+    if id_mov == "":
+        messagebox.showerror("Erro", "Informe o ID da movimentação.")
+        return
+
+    cursor.execute("""
+    UPDATE movimentacao
+    SET pagamento = 'Recebido'
+    WHERE id = ? AND valor IS NOT NULL
+    """, (id_mov,))
+    conexao.commit()
+
+    if cursor.rowcount == 0:
+        messagebox.showerror("Erro", "Movimentação não encontrada ou ainda sem valor calculado.")
+    else:
+        messagebox.showinfo("Sucesso", "Pagamento baixado com sucesso!")
+        entrada_recebimento_id.delete(0, tk.END)
+        listar_recebimentos_aberto()
+
+# ============================================================
+# 5. RELATÓRIOS
+# ============================================================
+def relatorio_clientes():
+    texto_relatorios.delete("1.0", tk.END)
+
+    cursor.execute("SELECT cpf, nome, placa FROM clientes ORDER BY nome")
+    registros = cursor.fetchall()
+
+    texto_relatorios.insert(tk.END, "RELATÓRIO DE CLIENTES\n\n")
+
+    if not registros:
+        texto_relatorios.insert(tk.END, "Nenhum cliente cadastrado.\n")
+        return
+
+    for r in registros:
+        texto_relatorios.insert(tk.END, f"{r}\n")
+
+
+def relatorio_abertos():
+    texto_relatorios.delete("1.0", tk.END)
+
+    cursor.execute("""
+    SELECT id, placa, data, valor, pagamento
+    FROM movimentacao
+    WHERE pagamento = 'A Pagar' AND valor IS NOT NULL
+    ORDER BY id DESC
+    """)
+    registros = cursor.fetchall()
+
+    texto_relatorios.insert(tk.END, "RECEBIMENTOS EM ABERTO\n\n")
+
+    if not registros:
+        texto_relatorios.insert(tk.END, "Nenhum recebimento em aberto.\n")
+        return
+
+    for r in registros:
+        texto_relatorios.insert(tk.END, f"{r}\n")
+
+
+def relatorio_recebidos():
+    texto_relatorios.delete("1.0", tk.END)
+
+    cursor.execute("""
+    SELECT id, placa, data, valor, pagamento
+    FROM movimentacao
+    WHERE pagamento = 'Recebido'
+    ORDER BY id DESC
+    """)
+    registros = cursor.fetchall()
+
+    texto_relatorios.insert(tk.END, "RECEBIMENTOS\n\n")
+
+    if not registros:
+        texto_relatorios.insert(tk.END, "Nenhum recebimento registrado.\n")
+        return
+
+    total = 0
+
+    for r in registros:
+        texto_relatorios.insert(tk.END, f"{r}\n")
+        total += r[3]
+
+    texto_relatorios.insert(tk.END, f"\nTOTAL RECEBIDO: R$ {total:.2f}\n")
+
+
+def top_5_clientes():
+    texto_relatorios.delete("1.0", tk.END)
+
+    cursor.execute("""
+    SELECT placa, COUNT(*) as total
+    FROM movimentacao
     GROUP BY placa
-    ORDER BY vezes_usadas
+    ORDER BY total DESC
     LIMIT 5
-                  
-    """
-)
+    """)
+    registros = cursor.fetchall()
 
-def relatorio_cliente():
-    
-    cursor.execute("SELECT * FROM clientes")
-    registros = cursor.fetchall()
-    cliente_relatorio.delete("1.0", tk.END)
-    cliente_relatorio.insert(tk.END, f"{r}\n")
+    texto_relatorios.insert(tk.END, "TOP 5 CLIENTES QUE MAIS USARAM O ESTACIONAMENTO\n\n")
 
-def pagamentos_pendentes():
-    
-    
-    cursor.execute("SELECT *  FROM clientes WHERE pagamento = 'A pagar'")
-    registros = cursor.fetchall()
-    relatorio_pag.delete("1.0", tk.END)
-    relatorio_pag.insert(tk.END, f"{r}\n")
-    
-def pagamentos_recebidos():
-    
-    cursor.execute("SELECT pagamento FROM clientes GROUP BY pagamentos")
-    registros = cursor.fetchall()
-    relatorio_pag.delete("1.0", tk.END)
-    relatorio.pag.insert(tk.END, f"{r[0]}:  R$ {r[1]:.2f}\n")
+    if not registros:
+        texto_relatorios.insert(tk.END, "Nenhum registro encontrado.\n")
+        return
+
+    posicao = 1
+    for placa, total in registros:
+        texto_relatorios.insert(tk.END, f"{posicao}º - Placa: {placa} | Usos: {total}\n")
+        posicao += 1
+
+# ============================================================
+# 6. JANELA PRINCIPAL
+# ============================================================
+janela = tk.Tk()
+janela.title("Controle de Estacionamento")
+janela.geometry("850x600")
+
+abas = ttk.Notebook(janela)
+abas.pack(expand=True, fill="both")
+
+# ============================================================
+# ABA CLIENTES
+# ============================================================
+aba_clientes = tk.Frame(abas)
+abas.add(aba_clientes, text="Cadastro de Clientes")
+
+tk.Label(aba_clientes, text="Nome:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+entrada_nome = tk.Entry(aba_clientes, width=30)
+entrada_nome.grid(row=0, column=1, padx=10, pady=10)
+
+tk.Label(aba_clientes, text="CPF:").grid(row=1, column=0, padx=10, pady=10, sticky="w")
+entrada_cpf = tk.Entry(aba_clientes, width=30)
+entrada_cpf.grid(row=1, column=1, padx=10, pady=10)
+
+tk.Label(aba_clientes, text="Placa:").grid(row=2, column=0, padx=10, pady=10, sticky="w")
+entrada_placa = tk.Entry(aba_clientes, width=30)
+entrada_placa.grid(row=2, column=1, padx=10, pady=10)
+
+tk.Button(aba_clientes, text="Cadastrar", command=cadastrar_cliente, width=15).grid(row=3, column=0, padx=10, pady=10)
+tk.Button(aba_clientes, text="Listar", command=listar_clientes, width=15).grid(row=3, column=1, padx=10, pady=10)
+tk.Button(aba_clientes, text="Atualizar", command=atualizar_cliente, width=15).grid(row=4, column=0, padx=10, pady=10)
+tk.Button(aba_clientes, text="Excluir", command=excluir_cliente, width=15).grid(row=4, column=1, padx=10, pady=10)
+
+lista_clientes = tk.Text(aba_clientes, width=95, height=20)
+lista_clientes.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
+
+# ============================================================
+# ABA MOVIMENTAÇÃO
+# ============================================================
+aba_mov = tk.Frame(abas)
+abas.add(aba_mov, text="Movimentação")
+
+tk.Label(aba_mov, text="Placa:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+entrada_mov_placa = tk.Entry(aba_mov, width=30)
+entrada_mov_placa.grid(row=0, column=1, padx=10, pady=10)
+
+tk.Button(aba_mov, text="Registrar Entrada", command=registrar_entrada, width=20).grid(row=1, column=0, padx=10, pady=10)
+tk.Button(aba_mov, text="Registrar Saída", command=registrar_saida, width=20).grid(row=1, column=1, padx=10, pady=10)
+tk.Button(aba_mov, text="Listar Movimentações", command=listar_movimentacao, width=20).grid(row=1, column=2, padx=10, pady=10)
+
+lista_mov = tk.Text(aba_mov, width=95, height=25)
+lista_mov.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
+
+# ============================================================
+# ABA RECEBIMENTOS
+# ============================================================
+aba_recebimentos = tk.Frame(abas)
+abas.add(aba_recebimentos, text="Recebimentos")
+
+tk.Label(aba_recebimentos, text="ID da Movimentação:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+entrada_recebimento_id = tk.Entry(aba_recebimentos, width=20)
+entrada_recebimento_id.grid(row=0, column=1, padx=10, pady=10)
+
+tk.Button(aba_recebimentos, text="Listar em Aberto", command=listar_recebimentos_aberto, width=20).grid(row=1, column=0, padx=10, pady=10)
+tk.Button(aba_recebimentos, text="Dar Baixa no Pagamento", command=dar_baixa_pagamento, width=20).grid(row=1, column=1, padx=10, pady=10)
+
+lista_recebimentos = tk.Text(aba_recebimentos, width=95, height=25)
+lista_recebimentos.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
+
+# ============================================================
+# ABA RELATÓRIOS
+# ============================================================
+aba_relatorios = tk.Frame(abas)
+abas.add(aba_relatorios, text="Relatórios")
+
+tk.Button(aba_relatorios, text="Clientes", command=relatorio_clientes, width=20).grid(row=0, column=0, padx=10, pady=10)
+tk.Button(aba_relatorios, text="Recebimentos em Aberto", command=relatorio_abertos, width=20).grid(row=0, column=1, padx=10, pady=10)
+tk.Button(aba_relatorios, text="Recebimentos", command=relatorio_recebidos, width=20).grid(row=0, column=2, padx=10, pady=10)
+tk.Button(aba_relatorios, text="Top 5 Clientes", command=top_5_clientes, width=20).grid(row=0, column=3, padx=10, pady=10)
+
+texto_relatorios = tk.Text(aba_relatorios, width=100, height=28)
+texto_relatorios.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
+
+# ============================================================
+# 7. INICIAR PROGRAMA
+# ============================================================
+janela.mainloop()
+conexao.close()
