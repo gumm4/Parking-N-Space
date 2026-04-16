@@ -2,6 +2,13 @@ import tkinter as tk
 import sqlite3
 from tkinter import messagebox, ttk
 from datetime import datetime
+import customtkinter as ctk
+
+
+#-----------------------------------------------------------PALETA DE CORES------------------------------------------------------------------------------------#
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
 
 
 # ============================================================
@@ -53,6 +60,13 @@ def cadastrar_cliente():
         messagebox.showerror("Erro", "O CPF deve conter apenas números.")
         return
 
+    if len(cpf) !=11:
+        messagebox.showerror("Erro", "O CPF deve ter exatamente 11 caracteres")
+        return
+    if len(placa) !=7:
+        messagebox.showerror("Erro", "A placa deve ter exatamente 7 caracteres")
+        return
+    
     try:
         cursor.execute("""
         INSERT INTO clientes (cpf, nome, placa)
@@ -344,7 +358,15 @@ def top_5_clientes():
 # ============================================================
 # 6. JANELA PRINCIPAL
 # ============================================================
-janela = tk.Tk()
+
+preto           = "#0a0709"
+azul_escuro     = "#0347ad"
+branco          = "#fff4f0"
+vermelho_vinho  = "#880d0d"
+verde           = "#149903"
+
+
+janela = ctk.CTk()
 janela.title("Controle de Estacionamento")
 janela.geometry("850x600")
 
@@ -354,27 +376,56 @@ abas.pack(expand=True, fill="both")
 # ============================================================
 # ABA CLIENTES
 # ============================================================
-aba_clientes = tk.Frame(abas)
+aba_clientes = ctk.CTkFrame(abas, fg_color = "#B9B9B9")
+aba_clientes.grid_columnconfigure(0, weight=1)
+aba_clientes.grid_columnconfigure(1, weight=0)
+aba_clientes.grid_columnconfigure(2, weight=1)
+aba_clientes.grid_rowconfigure(6, weight=1)
 abas.add(aba_clientes, text="Cadastro de Clientes")
 
-tk.Label(aba_clientes, text="Nome:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-entrada_nome = tk.Entry(aba_clientes, width=30)
-entrada_nome.grid(row=0, column=1, padx=10, pady=10)
+#-----------------------------------------------------------------------FRAME DE FORMULARIOS-------------------------------------------------------------------#
 
-tk.Label(aba_clientes, text="CPF:").grid(row=1, column=0, padx=10, pady=10, sticky="w")
-entrada_cpf = tk.Entry(aba_clientes, width=30)
-entrada_cpf.grid(row=1, column=1, padx=10, pady=10)
+frame_form = ctk.CTkFrame(aba_clientes, fg_color= "transparent")
+frame_form.grid(row = 0, column = 0, sticky = "nw", padx = 20, pady = 20)
 
-tk.Label(aba_clientes, text="Placa:").grid(row=2, column=0, padx=10, pady=10, sticky="w")
-entrada_placa = tk.Entry(aba_clientes, width=30)
-entrada_placa.grid(row=2, column=1, padx=10, pady=10)
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-tk.Button(aba_clientes, text="Cadastrar", command=cadastrar_cliente, width=15).grid(row=3, column=0, padx=10, pady=10)
-tk.Button(aba_clientes, text="Listar", command=listar_clientes, width=15).grid(row=3, column=1, padx=10, pady=10)
-tk.Button(aba_clientes, text="Atualizar", command=atualizar_cliente, width=15).grid(row=4, column=0, padx=10, pady=10)
-tk.Button(aba_clientes, text="Excluir", command=excluir_cliente, width=15).grid(row=4, column=1, padx=10, pady=10)
+#-----------------------------------------------------------------LABELS e Entrys------------------------------------------------------------------------------#
 
-lista_clientes = tk.Text(aba_clientes, width=95, height=20)
+tk.Label(frame_form, text="Nome:").grid(row=0, column=0, padx=(10,2), pady=5, sticky="e")
+entrada_nome = ctk.CTkEntry(frame_form, width=300)
+entrada_nome.configure(corner_radius = 15, fg_color = "#FFFFFF")
+entrada_nome.grid(row=0, column=1, padx=(2,10), pady=5, sticky = "w")
+
+tk.Label(frame_form, text="CPF:").grid(row=1, column=0, padx=(10,2), pady=10, sticky="e")
+entrada_cpf = ctk.CTkEntry(frame_form, width=300)
+entrada_cpf.configure(corner_radius = 15, fg_color = "#FFFFFF" )
+entrada_cpf.grid(row=1, column=1, padx=(2,10), pady=10, sticky = "w")
+
+tk.Label(frame_form, text="Placa:").grid(row=2, column=0, padx=(10,2), pady=10, sticky="e")
+entrada_placa = ctk.CTkEntry(frame_form, width=300)
+entrada_placa.configure(corner_radius = 15, fg_color = "#FFFFFF")
+entrada_placa.grid(row=2, column=1, padx=(2,10), pady=10, sticky = "w")
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#-------------------------------------------------------------------FRAMES DE BOTÕES---------------------------------------------------------------------------#
+
+frame_botoes = ctk.CTkFrame(aba_clientes,fg_color="transparent")
+frame_botoes.grid(row = 3, column = 0, columnspan = 3, pady = 20)
+
+
+
+
+ctk.CTkButton(frame_botoes, text="Listar", command=listar_clientes, width=120, fg_color = "#CF0505", corner_radius= 15).grid(row=0, column=0, padx=5)
+ctk.CTkButton(frame_botoes, text="Atualizar", command=atualizar_cliente, width=120, corner_radius=15).grid(row=0, column=1, padx=5)
+
+ctk.CTkButton(frame_botoes, text="Cadastrar", command=cadastrar_cliente, width=120, fg_color = verde, corner_radius= 15 ).grid(row=1, column=0, padx=5, pady= 8)
+ctk.CTkButton(frame_botoes, text="Excluir", command=excluir_cliente,width=120, fg_color = "#CF0505", corner_radius= 15).grid(row=1, column=1, padx=5, pady = 8)
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+lista_clientes = tk.Text(aba_clientes, width=750, height=20)
 lista_clientes.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
 # ============================================================
@@ -384,7 +435,8 @@ aba_mov = tk.Frame(abas)
 abas.add(aba_mov, text="Movimentação")
 
 tk.Label(aba_mov, text="Placa:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-entrada_mov_placa = tk.Entry(aba_mov, width=30)
+entrada_mov_placa = ctk.CTkEntry(aba_mov, width=300)
+entrada_mov_placa.configure(corner_radius= 15)
 entrada_mov_placa.grid(row=0, column=1, padx=10, pady=10)
 
 tk.Button(aba_mov, text="Registrar Entrada", command=registrar_entrada, width=20).grid(row=1, column=0, padx=10, pady=10)
