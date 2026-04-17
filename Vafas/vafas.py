@@ -392,19 +392,19 @@ frame_form.grid(row = 0, column = 0, sticky = "nw", padx = 20, pady = 20)
 
 #-----------------------------------------------------------------LABELS e Entrys------------------------------------------------------------------------------#
 
-tk.Label(frame_form, text="Nome:").grid(row=0, column=0, padx=(10,2), pady=5, sticky="e")
+ctk.CTkLabel(frame_form, text="Nome:", text_color = "#000000").grid(row=0, column=0, padx=(10,2), pady=5, sticky="e")
 entrada_nome = ctk.CTkEntry(frame_form, width=300)
-entrada_nome.configure(corner_radius = 15, fg_color = "#FFFFFF")
+entrada_nome.configure(corner_radius = 15, fg_color = "#FFFFFF", text_color = "#000000")
 entrada_nome.grid(row=0, column=1, padx=(2,10), pady=5, sticky = "w")
 
-tk.Label(frame_form, text="CPF:").grid(row=1, column=0, padx=(10,2), pady=10, sticky="e")
+ctk.CTkLabel(frame_form, text="CPF:", text_color = "#000000").grid(row=1, column=0, padx=(10,2), pady=10, sticky="e")
 entrada_cpf = ctk.CTkEntry(frame_form, width=300)
-entrada_cpf.configure(corner_radius = 15, fg_color = "#FFFFFF" )
+entrada_cpf.configure(corner_radius = 15, fg_color = "#FFFFFF", text_color = "#000000" )
 entrada_cpf.grid(row=1, column=1, padx=(2,10), pady=10, sticky = "w")
 
-tk.Label(frame_form, text="Placa:").grid(row=2, column=0, padx=(10,2), pady=10, sticky="e")
+ctk.CTkLabel(frame_form, text="Placa:", text_color = "#000000").grid(row=2, column=0, padx=(10,2), pady=10, sticky="e")
 entrada_placa = ctk.CTkEntry(frame_form, width=300)
-entrada_placa.configure(corner_radius = 15, fg_color = "#FFFFFF")
+entrada_placa.configure(corner_radius = 15, fg_color = "#FFFFFF", text_color = "#000000")
 entrada_placa.grid(row=2, column=1, padx=(2,10), pady=10, sticky = "w")
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -417,11 +417,11 @@ frame_botoes.grid(row = 3, column = 0, columnspan = 3, pady = 20)
 
 
 
-ctk.CTkButton(frame_botoes, text="Listar", command=listar_clientes, width=120, fg_color = "#CF0505", corner_radius= 15).grid(row=0, column=0, padx=5)
-ctk.CTkButton(frame_botoes, text="Atualizar", command=atualizar_cliente, width=120, corner_radius=15).grid(row=0, column=1, padx=5)
+ctk.CTkButton(frame_botoes, text="Listar", command=listar_clientes, width=120, fg_color = "#CF0505", corner_radius= 15, text_color = "#000000").grid(row=0, column=0, padx=5)
+ctk.CTkButton(frame_botoes, text="Atualizar", command=atualizar_cliente, width=120, corner_radius=15, text_color = "#000000").grid(row=0, column=1, padx=5)
 
-ctk.CTkButton(frame_botoes, text="Cadastrar", command=cadastrar_cliente, width=120, fg_color = verde, corner_radius= 15 ).grid(row=1, column=0, padx=5, pady= 8)
-ctk.CTkButton(frame_botoes, text="Excluir", command=excluir_cliente,width=120, fg_color = "#CF0505", corner_radius= 15).grid(row=1, column=1, padx=5, pady = 8)
+ctk.CTkButton(frame_botoes, text="Cadastrar", command=cadastrar_cliente, width=120, fg_color = verde, corner_radius= 15, text_color = '#000000' ).grid(row=1, column=0, padx=5, pady= 8)
+ctk.CTkButton(frame_botoes, text="Excluir", command=excluir_cliente,width=120, fg_color = "#CF0505", corner_radius= 15, text_color = "#000000").grid(row=1, column=1, padx=5, pady = 8)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
@@ -433,15 +433,21 @@ lista_clientes.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 # ============================================================
 aba_mov = tk.Frame(abas)
 abas.add(aba_mov, text="Movimentação")
+aba_mov.columnconfigure(0, weight= 1)
+aba_mov.columnconfigure(1, weight= 0)
+aba_mov.columnconfigure(2, weight= 1)
 
-tk.Label(aba_mov, text="Placa:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-entrada_mov_placa = ctk.CTkEntry(aba_mov, width=300)
-entrada_mov_placa.configure(corner_radius= 15)
+frame_movimentacao = ctk.CTkFrame(aba_mov, fg_color = "transparent")
+frame_movimentacao.grid(row = 0, column = 0, columnspan = 3, pady = 20)
+
+ctk.CTkLabel(frame_movimentacao, text="Placa:", text_color = "#000000").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+entrada_mov_placa = ctk.CTkEntry(frame_movimentacao, width=300)
+entrada_mov_placa.configure(corner_radius= 15, fg_color = "#ffffff", text_color = "#000000")
 entrada_mov_placa.grid(row=0, column=1, padx=10, pady=10)
 
-tk.Button(aba_mov, text="Registrar Entrada", command=registrar_entrada, width=20).grid(row=1, column=0, padx=10, pady=10)
-tk.Button(aba_mov, text="Registrar Saída", command=registrar_saida, width=20).grid(row=1, column=1, padx=10, pady=10)
-tk.Button(aba_mov, text="Listar Movimentações", command=listar_movimentacao, width=20).grid(row=1, column=2, padx=10, pady=10)
+ctk.CTkButton(frame_movimentacao, text="Registrar Entrada", command=registrar_entrada, width=20, corner_radius= 15, fg_color = "#FFFFFF", text_color= "#000000", border_color= "#000000").grid(row=1, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_movimentacao, text="Registrar Saída", command=registrar_saida, width=20, corner_radius= 15, fg_color= "#FFFFFF", text_color = "#000000", border_color= "#000000").grid(row=1, column=1, padx=10, pady=10)
+ctk.CTkButton(frame_movimentacao, text="Listar Movimentações", command=listar_movimentacao, width=20, corner_radius= 15, fg_color= "#FFFFFF", text_color = "#000000", border_color= "#000000").grid(row=1, column=2, padx=10, pady=10)
 
 lista_mov = tk.Text(aba_mov, width=95, height=25)
 lista_mov.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
@@ -452,12 +458,26 @@ lista_mov.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
 aba_recebimentos = tk.Frame(abas)
 abas.add(aba_recebimentos, text="Recebimentos")
 
-tk.Label(aba_recebimentos, text="ID da Movimentação:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-entrada_recebimento_id = tk.Entry(aba_recebimentos, width=20)
+
+aba_recebimentos.columnconfigure(0, weight= 1)
+aba_recebimentos.columnconfigure(1, weight=0)
+aba_recebimentos.columnconfigure(2, weight=1)
+
+
+frame_recebimentos = ctk.CTkFrame(aba_recebimentos, fg_color = "transparent")
+frame_recebimentos.grid(row =  0, column = 0, columnspan = 3, pady = 20)
+
+
+tk.Label(frame_recebimentos, text="ID da Movimentação:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+entrada_recebimento_id = ctk.CTkEntry(frame_recebimentos, width=200)
+entrada_recebimento_id.configure(corner_radius = 15, fg_color = "#ffffff", text_color = "#000000")
 entrada_recebimento_id.grid(row=0, column=1, padx=10, pady=10)
 
-tk.Button(aba_recebimentos, text="Listar em Aberto", command=listar_recebimentos_aberto, width=20).grid(row=1, column=0, padx=10, pady=10)
-tk.Button(aba_recebimentos, text="Dar Baixa no Pagamento", command=dar_baixa_pagamento, width=20).grid(row=1, column=1, padx=10, pady=10)
+
+ctk.CTkButton(frame_recebimentos, text="Listar em Aberto", command=listar_recebimentos_aberto, width=20, corner_radius = 15, fg_color = "#ffffff", text_color = "#000000").grid(row=1, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_recebimentos, text="Dar Baixa no Pagamento", command=dar_baixa_pagamento, width=20, corner_radius = 15, fg_color = "#ffffff", text_color = "#000000").grid(row=1, column=1, padx=10, pady=10)
+
 
 lista_recebimentos = tk.Text(aba_recebimentos, width=95, height=25)
 lista_recebimentos.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
@@ -468,10 +488,17 @@ lista_recebimentos.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
 aba_relatorios = tk.Frame(abas)
 abas.add(aba_relatorios, text="Relatórios")
 
-tk.Button(aba_relatorios, text="Clientes", command=relatorio_clientes, width=20).grid(row=0, column=0, padx=10, pady=10)
-tk.Button(aba_relatorios, text="Recebimentos em Aberto", command=relatorio_abertos, width=20).grid(row=0, column=1, padx=10, pady=10)
-tk.Button(aba_relatorios, text="Recebimentos", command=relatorio_recebidos, width=20).grid(row=0, column=2, padx=10, pady=10)
-tk.Button(aba_relatorios, text="Top 5 Clientes", command=top_5_clientes, width=20).grid(row=0, column=3, padx=10, pady=10)
+aba_relatorios.columnconfigure(0, weight= 1)
+aba_relatorios.columnconfigure(1, weight= 0)
+aba_relatorios.columnconfigure(2, weight= 1)
+
+frame_relatorios = ctk.CTkFrame(aba_relatorios, fg_color = "transparent")
+frame_relatorios.grid(row = 0, column = 0, columnspan = 3, pady = 20)
+
+ctk.CTkButton(frame_relatorios, text="Clientes", command=relatorio_clientes, width=20, fg_color = "#ffffff", corner_radius= 15, text_color = "#000000").grid(row=0, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_relatorios, text="Recebimentos em Aberto", command=relatorio_abertos, width=20, fg_color = "#ffffff", corner_radius= 15, text_color="#000000").grid(row=0, column=1, padx=10, pady=10)
+ctk.CTkButton(frame_relatorios, text="Recebimentos", command=relatorio_recebidos, width=20, fg_color = "#ffffff", corner_radius= 15, text_color = "#000000").grid(row=0, column=2, padx=10, pady=10)
+ctk.CTkButton(frame_relatorios, text="Top 5 Clientes", command=top_5_clientes, width=20, fg_color = "#ffffff", corner_radius= 15, text_color = "#000000").grid(row=0, column=3, padx=10, pady=10)
 
 texto_relatorios = tk.Text(aba_relatorios, width=100, height=28)
 texto_relatorios.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
