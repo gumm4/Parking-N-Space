@@ -3,12 +3,13 @@ import sqlite3
 from tkinter import messagebox, ttk
 from datetime import datetime
 import customtkinter as ctk
+import pyglet
+
+pyglet.font.add_file("fonts/Oswald-Regular.ttf")
+pyglet.font.add_file("fonts/Oswald-Bold.ttf")
 
 
-#-----------------------------------------------------------PALETA DE CORES------------------------------------------------------------------------------------#
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-
+ctk.set_appearance_mode("light")
 
 
 # ============================================================
@@ -355,155 +356,187 @@ def top_5_clientes():
         texto_relatorios.insert(tk.END, f"{posicao}º - Placa: {placa} | Usos: {total}\n")
         posicao += 1
 
-# ============================================================
+#============================================================
 # 6. JANELA PRINCIPAL
 # ============================================================
 
-preto           = "#0a0709"
-azul_escuro     = "#0347ad"
-branco          = "#fff4f0"
-vermelho_vinho  = "#880d0d"
-verde           = "#149903"
 
+
+
+
+font_titulo = ("Oswald", 20, "bold")
+fonte_label = ("Oswald", 13)
+fonte_botao = ("Oswald", 12, "bold")
+fonte_texto = ("Oswald", 12)
 
 janela = ctk.CTk()
 janela.title("Controle de Estacionamento")
 janela.geometry("850x600")
 
-abas = ttk.Notebook(janela)
-abas.pack(expand=True, fill="both")
+abas = ctk.CTkTabview(janela, width=830, height=560, border_width=3, border_color = "#610a00pip")
+abas.pack(expand=True, fill="both", padx=10, pady=10)
+abas._segmented_button.configure(
+    
+    fg_color = "#610a00",
+    selected_color = "#3d0008",
+    selected_hover_color = "#4d0010",
+    unselected_color = "#610a00",
+    unselected_hover_color = "#8b1a2a",
+    text_color = "#ffffff",
+    text_color_disabled = "#ffaaaa"
+    
+)
+
+abas.add("Cadastro de Clientes")
+abas.add("Movimentação")
+abas.add("Recebimentos")
+abas.add("Relatórios")
 
 # ============================================================
 # ABA CLIENTES
 # ============================================================
-aba_clientes = ctk.CTkFrame(abas, fg_color = "#B9B9B9")
-aba_clientes.grid_columnconfigure(0, weight=1)
-aba_clientes.grid_columnconfigure(1, weight=0)
+aba_clientes = abas.tab("Cadastro de Clientes")
+aba_clientes.grid_columnconfigure(0, weight= 1)
+aba_clientes.grid_columnconfigure(1, weight= 0)
 aba_clientes.grid_columnconfigure(2, weight=1)
-aba_clientes.grid_rowconfigure(6, weight=1)
-abas.add(aba_clientes, text="Cadastro de Clientes")
+#---------------------------#
+# FRAME DE LABELS E ENTRY #
+#---------------------------#
 
-#-----------------------------------------------------------------------FRAME DE FORMULARIOS-------------------------------------------------------------------#
+frame_label = ctk.CTkFrame(aba_clientes, fg_color = "transparent")
+frame_label.grid(row = 0, column = 0, padx = 20, pady = 20, columnspan =3)
 
-frame_form = ctk.CTkFrame(aba_clientes, fg_color= "transparent")
-frame_form.grid(row = 0, column = 0, sticky = "nw", padx = 20, pady = 20)
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-
-#-----------------------------------------------------------------LABELS e Entrys------------------------------------------------------------------------------#
-
-ctk.CTkLabel(frame_form, text="Nome:", text_color = "#000000").grid(row=0, column=0, padx=(10,2), pady=5, sticky="e")
-entrada_nome = ctk.CTkEntry(frame_form, width=300)
-entrada_nome.configure(corner_radius = 15, fg_color = "#FFFFFF", text_color = "#000000")
-entrada_nome.grid(row=0, column=1, padx=(2,10), pady=5, sticky = "w")
-
-ctk.CTkLabel(frame_form, text="CPF:", text_color = "#000000").grid(row=1, column=0, padx=(10,2), pady=10, sticky="e")
-entrada_cpf = ctk.CTkEntry(frame_form, width=300)
-entrada_cpf.configure(corner_radius = 15, fg_color = "#FFFFFF", text_color = "#000000" )
-entrada_cpf.grid(row=1, column=1, padx=(2,10), pady=10, sticky = "w")
-
-ctk.CTkLabel(frame_form, text="Placa:", text_color = "#000000").grid(row=2, column=0, padx=(10,2), pady=10, sticky="e")
-entrada_placa = ctk.CTkEntry(frame_form, width=300)
-entrada_placa.configure(corner_radius = 15, fg_color = "#FFFFFF", text_color = "#000000")
-entrada_placa.grid(row=2, column=1, padx=(2,10), pady=10, sticky = "w")
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-#-------------------------------------------------------------------FRAMES DE BOTÕES---------------------------------------------------------------------------#
+ctk.CTkLabel(frame_label, text="Nome:", font = fonte_label).grid(row=0, column=0, padx=10, pady=10)
+entrada_nome = ctk.CTkEntry(frame_label, width=250, border_color= "#000000" , fg_color = "#ffffff", text_color= "#000000" )
+entrada_nome.grid(row=0, column=1, padx=10, pady=10)
 
-frame_botoes = ctk.CTkFrame(aba_clientes,fg_color="transparent")
+ctk.CTkLabel(frame_label, text="CPF:").grid(row=0, column=2, padx=10, pady=10)
+entrada_cpf = ctk.CTkEntry(frame_label, width=250, border_color= "#000000", fg_color = "#ffffff", text_color = "#000000" )
+entrada_cpf.grid(row=0, column=3, padx=10, pady=10)
+
+ctk.CTkLabel(frame_label, text="Placa:").grid(row=0, column=4, padx=10, pady=10)
+entrada_placa = ctk.CTkEntry(frame_label, width=250, border_color= "#000000", fg_color = "#ffffff", text_color = "#000000" )
+entrada_placa.grid(row=0, column=5, padx=10, pady=10)
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#------------------------------#
+# FRAME BOTÕES #
+#------------------------------#
+
+frame_botoes = ctk.CTkFrame(aba_clientes, fg_color = "transparent")
+
 frame_botoes.grid(row = 3, column = 0, columnspan = 3, pady = 20)
 
+ctk.CTkButton(frame_botoes, text="Cadastrar", command=cadastrar_cliente, width=120, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=0, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_botoes, text="Listar", command=listar_clientes, width=120, fg_color = "#610a00", hover_color= "#8b1a2a").grid(row=0, column=1, padx=10, pady=10)
+ctk.CTkButton(frame_botoes, text="Atualizar", command=atualizar_cliente, width=120, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=1, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_botoes, text="Excluir", command=excluir_cliente, width=120, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row =1, column=1, padx=10, pady=10)
 
 
+#-------------------------------#
+# FRAME DE LISTAGEM #
+#------------------------------#
 
-ctk.CTkButton(frame_botoes, text="Listar", command=listar_clientes, width=120, fg_color = "#CF0505", corner_radius= 15, text_color = "#000000").grid(row=0, column=0, padx=5)
-ctk.CTkButton(frame_botoes, text="Atualizar", command=atualizar_cliente, width=120, corner_radius=15, text_color = "#000000").grid(row=0, column=1, padx=5)
 
-ctk.CTkButton(frame_botoes, text="Cadastrar", command=cadastrar_cliente, width=120, fg_color = verde, corner_radius= 15, text_color = '#000000' ).grid(row=1, column=0, padx=5, pady= 8)
-ctk.CTkButton(frame_botoes, text="Excluir", command=excluir_cliente,width=120, fg_color = "#CF0505", corner_radius= 15, text_color = "#000000").grid(row=1, column=1, padx=5, pady = 8)
+"""frame_form = ctk.CTkFrame(aba_clientes, fg_color = "transparent")
+frame_form.grid(row = 1, column = 0, padx= 20, pady = 20)"""
+
+lista_clientes = ctk.CTkTextbox(aba_clientes, width=760, height=350, fg_color="#FFFFFF", text_color= "#000000", border_color= "#000000", border_width= 3)    
+lista_clientes.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
+
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------#
-
-lista_clientes = tk.Text(aba_clientes, width=750, height=20)
-lista_clientes.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
 # ============================================================
 # ABA MOVIMENTAÇÃO
 # ============================================================
-aba_mov = tk.Frame(abas)
-abas.add(aba_mov, text="Movimentação")
-aba_mov.columnconfigure(0, weight= 1)
-aba_mov.columnconfigure(1, weight= 0)
-aba_mov.columnconfigure(2, weight= 1)
+aba_mov = abas.tab("Movimentação")
+aba_mov.grid_columnconfigure(0, weight= 1)
+aba_mov.grid_columnconfigure(1, weight=0)
+aba_mov.grid_columnconfigure(2, weight=1)
 
-frame_movimentacao = ctk.CTkFrame(aba_mov, fg_color = "transparent")
-frame_movimentacao.grid(row = 0, column = 0, columnspan = 3, pady = 20)
+#--------------------------------------------#
+# FRAME DE LABEL E ENTRY #
+#--------------------------------------------#
 
-ctk.CTkLabel(frame_movimentacao, text="Placa:", text_color = "#000000").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-entrada_mov_placa = ctk.CTkEntry(frame_movimentacao, width=300)
-entrada_mov_placa.configure(corner_radius= 15, fg_color = "#ffffff", text_color = "#000000")
+frame_label_mov = ctk.CTkFrame(aba_mov, fg_color = "transparent")
+frame_label_mov.grid( row = 0, column = 0, columnspan = 3, pady = 20)
+
+ctk.CTkLabel(frame_label_mov, text="Placa:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+entrada_mov_placa = ctk.CTkEntry(frame_label_mov, width=250)
 entrada_mov_placa.grid(row=0, column=1, padx=10, pady=10)
+entrada_mov_placa.configure( border_color = "#000000")
 
-ctk.CTkButton(frame_movimentacao, text="Registrar Entrada", command=registrar_entrada, width=20, corner_radius= 15, fg_color = "#FFFFFF", text_color= "#000000", border_color= "#000000").grid(row=1, column=0, padx=10, pady=10)
-ctk.CTkButton(frame_movimentacao, text="Registrar Saída", command=registrar_saida, width=20, corner_radius= 15, fg_color= "#FFFFFF", text_color = "#000000", border_color= "#000000").grid(row=1, column=1, padx=10, pady=10)
-ctk.CTkButton(frame_movimentacao, text="Listar Movimentações", command=listar_movimentacao, width=20, corner_radius= 15, fg_color= "#FFFFFF", text_color = "#000000", border_color= "#000000").grid(row=1, column=2, padx=10, pady=10)
+#-------------------------------------#
+# FRAME DE BOTÕES MOVIMENTOS #
+#-------------------------------------#
 
-lista_mov = tk.Text(aba_mov, width=95, height=25)
+frame_botoes_mov = ctk.CTkFrame(aba_mov, fg_color = "transparent")
+frame_botoes_mov.grid(row = 1, column = 0, columnspan = 3, pady = 20)
+
+ctk.CTkButton(frame_botoes_mov, text="Registrar Entrada", command=registrar_entrada, width=160, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=1, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_botoes_mov, text="Registrar Saída", command=registrar_saida, width=160, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=1, column=1, padx=10, pady=10)
+ctk.CTkButton(frame_botoes_mov, text="Listar Movimentações", command=listar_movimentacao, width=180, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=1, column=2, padx=10, pady=10)
+
+lista_mov = ctk.CTkTextbox(aba_mov, width=760, height=400, fg_color="#FFFFFF", text_color= "#000000", border_width = 3, border_color = "#000000")
 lista_mov.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
 
 # ============================================================
 # ABA RECEBIMENTOS
 # ============================================================
-aba_recebimentos = tk.Frame(abas)
-abas.add(aba_recebimentos, text="Recebimentos")
+aba_recebimentos = abas.tab("Recebimentos")
+aba_recebimentos.grid_columnconfigure(0, weight= 1)
+aba_recebimentos.grid_columnconfigure(1, weight= 0)
+aba_recebimentos.grid_columnconfigure(2, weight= 1)
 
+#---------------------------------#
+# FRAME RECEBIMENTO LABEL E ENTRY #
+#---------------------------------#
 
-aba_recebimentos.columnconfigure(0, weight= 1)
-aba_recebimentos.columnconfigure(1, weight=0)
-aba_recebimentos.columnconfigure(2, weight=1)
+frame_label_receb = ctk.CTkFrame( aba_recebimentos, fg_color = "transparent")
+frame_label_receb.grid(row = 0, column = 0, columnspan = 3, pady = 20)
 
-
-frame_recebimentos = ctk.CTkFrame(aba_recebimentos, fg_color = "transparent")
-frame_recebimentos.grid(row =  0, column = 0, columnspan = 3, pady = 20)
-
-
-tk.Label(frame_recebimentos, text="ID da Movimentação:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-
-entrada_recebimento_id = ctk.CTkEntry(frame_recebimentos, width=200)
-entrada_recebimento_id.configure(corner_radius = 15, fg_color = "#ffffff", text_color = "#000000")
+ctk.CTkLabel(frame_label_receb, text="ID da Movimentação:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+entrada_recebimento_id = ctk.CTkEntry(frame_label_receb, width=200)
 entrada_recebimento_id.grid(row=0, column=1, padx=10, pady=10)
+entrada_recebimento_id.configure(border_color = "#000000")
 
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
-ctk.CTkButton(frame_recebimentos, text="Listar em Aberto", command=listar_recebimentos_aberto, width=20, corner_radius = 15, fg_color = "#ffffff", text_color = "#000000").grid(row=1, column=0, padx=10, pady=10)
-ctk.CTkButton(frame_recebimentos, text="Dar Baixa no Pagamento", command=dar_baixa_pagamento, width=20, corner_radius = 15, fg_color = "#ffffff", text_color = "#000000").grid(row=1, column=1, padx=10, pady=10)
+frame_botoes_receb = ctk.CTkFrame(aba_recebimentos, fg_color = "transparent")
+frame_botoes_receb.grid(row = 1, column = 0, columnspan = 3, pady = 20 )
 
+ctk.CTkButton(frame_botoes_receb, text="Listar em Aberto", command=listar_recebimentos_aberto, width=170, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=1, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_botoes_receb, text="Dar Baixa no Pagamento", command=dar_baixa_pagamento, width=190, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=1, column=1, padx=10, pady=10)
 
-lista_recebimentos = tk.Text(aba_recebimentos, width=95, height=25)
+lista_recebimentos = ctk.CTkTextbox(aba_recebimentos, width=760, height=400, fg_color="#FFFFFF", text_color= "#000000", border_width= 3,  border_color = "#000000")
 lista_recebimentos.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
 
 # ============================================================
 # ABA RELATÓRIOS
 # ============================================================
-aba_relatorios = tk.Frame(abas)
-abas.add(aba_relatorios, text="Relatórios")
+aba_relatorios = abas.tab("Relatórios")
+aba_relatorios.grid_columnconfigure(0, weight= 1)
+aba_relatorios.grid_columnconfigure(1, weight=0)
+aba_relatorios.grid_columnconfigure(2, weight=1)
 
-aba_relatorios.columnconfigure(0, weight= 1)
-aba_relatorios.columnconfigure(1, weight= 0)
-aba_relatorios.columnconfigure(2, weight= 1)
 
-frame_relatorios = ctk.CTkFrame(aba_relatorios, fg_color = "transparent")
-frame_relatorios.grid(row = 0, column = 0, columnspan = 3, pady = 20)
+frame_botoes_rela = ctk.CTkFrame(aba_relatorios, fg_color = "transparent")
+frame_botoes_rela.grid( row = 0, column = 0, columnspan = 3, pady = 20)
 
-ctk.CTkButton(frame_relatorios, text="Clientes", command=relatorio_clientes, width=20, fg_color = "#ffffff", corner_radius= 15, text_color = "#000000").grid(row=0, column=0, padx=10, pady=10)
-ctk.CTkButton(frame_relatorios, text="Recebimentos em Aberto", command=relatorio_abertos, width=20, fg_color = "#ffffff", corner_radius= 15, text_color="#000000").grid(row=0, column=1, padx=10, pady=10)
-ctk.CTkButton(frame_relatorios, text="Recebimentos", command=relatorio_recebidos, width=20, fg_color = "#ffffff", corner_radius= 15, text_color = "#000000").grid(row=0, column=2, padx=10, pady=10)
-ctk.CTkButton(frame_relatorios, text="Top 5 Clientes", command=top_5_clientes, width=20, fg_color = "#ffffff", corner_radius= 15, text_color = "#000000").grid(row=0, column=3, padx=10, pady=10)
+ctk.CTkButton(frame_botoes_rela, text="Clientes", command=relatorio_clientes, width=140, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=0, column=0, padx=10, pady=10)
+ctk.CTkButton(frame_botoes_rela, text="Recebimentos em Aberto", command=relatorio_abertos, width=180, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=0, column=1, padx=10, pady=10)
+ctk.CTkButton(frame_botoes_rela, text="Recebimentos", command=relatorio_recebidos, width=140, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=0, column=2, padx=10, pady=10)
+ctk.CTkButton(frame_botoes_rela, text="Top 5 Clientes", command=top_5_clientes, width=160, fg_color = "#610a00", hover_color = "#8b1a2a").grid(row=0, column=3, padx=10, pady=10)
 
-texto_relatorios = tk.Text(aba_relatorios, width=100, height=28)
+texto_relatorios = ctk.CTkTextbox(aba_relatorios, width=760, height=420, fg_color="#FFFFFF", text_color= "#000000", border_width= 3, border_color= "#000000")
 texto_relatorios.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
 
-# ============================================================
+# ============================================================, fg_color = "#610a00", hover_color = "#8b1a2a"
 # 7. INICIAR PROGRAMA
 # ============================================================
 janela.mainloop()
