@@ -373,7 +373,7 @@ janela = ctk.CTk()
 janela.title("Controle de Estacionamento")
 janela.geometry("850x600")
 
-abas = ctk.CTkTabview(janela, width=830, height=560, border_width=3, border_color = "#610a00pip")
+abas = ctk.CTkTabview(janela, width=830, height=560, border_width=3, border_color = "#610a00")
 abas.pack(expand=True, fill="both", padx=10, pady=10)
 abas._segmented_button.configure(
     
